@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import { View, Text, Alert, Button } from 'react-native'
+import { View, Text, Alert, Button, TouchableOpacity } from 'react-native'
 import LoginCmp from '../components/Login'
 import { styles } from '../styles/styles'
 import {store} from '../App'
 import {setUserCredentials} from '../store/actions'
+import { Ionicons } from '@expo/vector-icons';
 
 export default class Login extends Component {
   constructor(props) {
@@ -12,13 +13,13 @@ export default class Login extends Component {
 
   static navigationOptions = ({ navigation }) => {
     let headerRight = (
-      <Button
-        title="Settings"
-        onPress={() => { navigation.navigate('Settings') }}
-      />
-    );
+      <TouchableOpacity style={{ padding: 10 }} onPress={() => { navigation.navigate('Settings') }}>
+        <Ionicons name="md-settings" size={28} color={'rgb(14,122,254)'} />
+      </TouchableOpacity>
+    )
     return { headerRight };
   }
+
 
   onLogin(credentials) {
     {

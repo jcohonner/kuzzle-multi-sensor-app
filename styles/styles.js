@@ -16,6 +16,7 @@ export const styles = StyleSheet.create({
   container: {
     // padding: 10,
     // paddingTop: 50,
+    paddingTop:20,
     flex: 1,
     backgroundColor: darkbrown,
     alignItems: 'flex-start',

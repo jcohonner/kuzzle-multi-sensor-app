@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
-import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration } from 'react-native'
+import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity } from 'react-native'
 import { TriangleColorPicker, fromHsv } from 'react-native-color-picker'
+import { Ionicons } from '@expo/vector-icons';
 import { styles, lightblue, orange, green } from '../styles/styles'
 import { store } from '../App'
 import Kuzzle from 'kuzzle-sdk/dist/kuzzle.js'
@@ -26,19 +27,22 @@ export default class Dashboard extends Component {
     this.state = {
       kuzzle_conn: false,
       btn_state: {},
-      my_devices: [
-      ],
+      my_devices: [],
       rfid_tags: [],
       rgb_light: {},
       light_level: undefined
     }
     this.deviceKey = 0
+    this.kuzzleSettings = store.getState().kuzzleSettings
   }
 
   componentDidMount() {
     console.log('Dashboard: componentDidMount...')
-    console.log('store: ', store.getState())
-    var k = store.getState().kuzzleSettings
+    this.unsubscribeStore = store.subscribe(this.onStoreUpdated)
+    this.kuzzle_connect(this.kuzzleSettings)
+  }
+
+  kuzzle_connect (k) {
     this.kuzzle = Kuzzle(k.hostname, { defaultIndex: 'iot', port: k.port }, (err) => {
       if (err) {
         console.log('Kuzzle connection error:', err)
@@ -47,18 +51,42 @@ export default class Dashboard extends Component {
         this.setState({ kuzzle_conn: true })
         this.kuzzle.setDefaultIndex('iot')
         this.device_state_col = this.kuzzle.collection('device-state')
-
         this.searchUserDevice(store.getState().kuzzleSettings.user)
       }
-
     })
+  }
+
+  onStoreUpdated = () => {
+    var k = store.getState().kuzzleSettings
+    if (k.hostname !== this.kuzzleSettings.hostname ||
+      k.port !== this.kuzzleSettings.port ||
+      k.user !== this.kuzzleSettings.user ||
+      k.password !== this.kuzzleSettings.password) {
+      console.log("kuzzleSettings changed, reconnecting...")
+      this.kuzzleSettings = k
+      this.kuzzle.disconnect()
+      this.setState({kuzzle_conn:false})
+      this.setState({ my_devices: [] })
+      this.kuzzle_connect(k)
+
+    }
   }
 
   componentWillUnmount() {
     console.log('Dashboard: componentWillUnmount...')
+    this.unsubscribeStore()
     this.kuzzle.disconnect()
   }
 
+  static navigationOptions = ({ navigation }) => {
+    let headerRight = (
+      <TouchableOpacity style={{ padding: 10 }} onPress={() => { navigation.navigate('Settings') }}>
+        <Ionicons name="md-settings" size={28} color={'rgb(14,122,254)'} />
+      </TouchableOpacity>
+    )
+    return { headerRight };
+  }
+  
   searchUserDevice(user) {
     console.log('Searching for "', user, '" devices...')
     var device_info_col = this.kuzzle.collection('device-info')

@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import { setKuzzleSettings } from '../store/actions'
 import PropTypes from 'prop-types'
 import { store } from '../App'
+import { Header } from 'react-navigation'
 
 
 class Settings extends Component {
@@ -25,38 +26,39 @@ class Settings extends Component {
       hostname: this.state.hostname,
       port: this.state.port,
     })
+    this.props.navigation.goBack()
   }
 
   updateDeviceUID = () => {
     console.log("TODO: updateDeviceUID");
   }
 
+  static navigationOptions = (navigation) => {
+    return {
+      header: () => { return ( <Header/>)}
+    }
+  }
 
   render() {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: 25 }]}>
         <View style={styles.framed}>
-            <Text style={styles.card_header}>Kuzzle Server</Text>
-            <TextInput
-              placeholder="kuzzle host"
-              style={styles.input}
-              value={this.state.hostname}
-              keyboardType='url'
-              onChangeText={(text) => this.setState({ hostname: text })}
-            />
-            <TextInput
-              placeholder="kuzzle port"
-              style={styles.input}
-              value={this.state.port.toString()}
-              keyboardType='numeric'
-              onChangeText={(text) => this.setState({ port: text.parseInt() })}
-            />
-            <Button color={orange} onPress={this.updateKuzzleSettings} title='Apply' />
-        </View>
-        <View style={styles.framed}>
-            <Text style={styles.card_header}>Device</Text>
-            <TextInput placeholder="base uid" style={styles.input} />
-            <Button color={orange} onPress={this.updateDeviceUID} title='Apply' />
+          <Text style={styles.card_header}>Kuzzle Server</Text>
+          <TextInput
+            placeholder="kuzzle host"
+            style={styles.input}
+            value={this.state.hostname}
+            keyboardType='url'
+            onChangeText={(text) => this.setState({ hostname: text })}
+          />
+          <TextInput
+            placeholder="kuzzle port"
+            style={styles.input}
+            value={this.state.port.toString()}
+            keyboardType='numeric'
+            onChangeText={(text) => this.setState({ port: text.parseInt() })}
+          />
+          <Button color={orange} onPress={this.updateKuzzleSettings} title='apply' />
         </View>
       </View>
     )
