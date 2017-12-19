@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity } from 'react-native'
+import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity, Alert } from 'react-native'
 import { TriangleColorPicker, fromHsv } from 'react-native-color-picker'
 import { Ionicons } from '@expo/vector-icons';
 import { styles, lightblue, orange, green } from '../styles/styles'
@@ -20,12 +20,18 @@ const PRODUCT_ITEM_HEIGHT = 255;
 const PRODUCT_ITEM_OFFSET = 5;
 const PRODUCT_ITEM_MARGIN = PRODUCT_ITEM_OFFSET * 2;
 
+const KUZZLE_CONN_STATE = {
+  DISCONNECTED: 0,
+  CONNECTING: 1,
+  ERROR: 2,
+  CONNECTED: 3,
+}
 
 export default class Dashboard extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      kuzzle_conn: false,
+      kuzzle_conn: KUZZLE_CONN_STATE.DISCONNECTED,
       btn_state: {},
       my_devices: [],
       rfid_tags: [],
@@ -42,13 +48,20 @@ export default class Dashboard extends Component {
     this.kuzzle_connect(this.kuzzleSettings)
   }
 
-  kuzzle_connect (k) {
-    this.kuzzle = Kuzzle(k.hostname, { defaultIndex: 'iot', port: k.port }, (err) => {
+  kuzzle_connect(k) {
+    this.setState({ kuzzle_conn: KUZZLE_CONN_STATE.CONNECTING })
+    this.kuzzle = Kuzzle(k.hostname, { defaultIndex: 'iot', port: k.port,  }, (err) => {
       if (err) {
-        console.log('Kuzzle connection error:', err)
+        console.log('Kuzzle connection error:', err.toString())
+        this.setState({kuzzle_conn: KUZZLE_CONN_STATE.ERROR})
+        Alert.alert('Kuzzle connection error', err.toString(), [
+          {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+          {text: 'Retry', onPress: () => console.log('Retry Pressed')},
+        ],
+        { cancelable: false })
       } else {
         console.log('Connected to Kuzzle')
-        this.setState({ kuzzle_conn: true })
+        this.setState({ kuzzle_conn: KUZZLE_CONN_STATE.CONNECTED })
         this.kuzzle.setDefaultIndex('iot')
         this.device_state_col = this.kuzzle.collection('device-state')
         this.searchUserDevice(store.getState().kuzzleSettings.user)
@@ -65,7 +78,7 @@ export default class Dashboard extends Component {
       console.log("kuzzleSettings changed, reconnecting...")
       this.kuzzleSettings = k
       this.kuzzle.disconnect()
-      this.setState({kuzzle_conn:false})
+      this.setState({ kuzzle_conn: KUZZLE_CONN_STATE.DISCONNECTED })
       this.setState({ my_devices: [] })
       this.kuzzle_connect(k)
 
@@ -86,7 +99,7 @@ export default class Dashboard extends Component {
     )
     return { headerRight };
   }
-  
+
   searchUserDevice(user) {
     console.log('Searching for "', user, '" devices...')
     var device_info_col = this.kuzzle.collection('device-info')
@@ -295,38 +308,53 @@ export default class Dashboard extends Component {
   }
 
   render() {
-    return (
-      this.state.kuzzle_conn ?
-        <View style={styles.container}>
-          <FlatList
-            numColumns={2}
-            data={this.state.my_devices}
-            extraData={this.state}
-            renderItem={
-              ({ item }) => {
-                if (item.device_id.startsWith('buttons_'))
-                  return this.render_buttons(item)
-                else if (item.device_id.startsWith('motion_'))
-                  return this.render_motion(item)
-                else if (item.device_id.startsWith('rgb_light_'))
-                  return this.render_rgb_light(item)
-                else if (item.device_id.startsWith('light_lvl_'))
-                  return this.render_light_level(item)
-                else if (item.device_id.startsWith('NFC_'))
-                  return this.render_nfc(item)
+    switch (this.state.kuzzle_conn) {
+      case KUZZLE_CONN_STATE.CONNECTED:
+        return (
+          <View style={styles.container}>
+            <FlatList
+              numColumns={2}
+              data={this.state.my_devices}
+              extraData={this.state}
+              renderItem={
+                ({ item }) => {
+                  if (item.device_id.startsWith('buttons_'))
+                    return this.render_buttons(item)
+                  else if (item.device_id.startsWith('motion_'))
+                    return this.render_motion(item)
+                  else if (item.device_id.startsWith('rgb_light_'))
+                    return this.render_rgb_light(item)
+                  else if (item.device_id.startsWith('light_lvl_'))
+                    return this.render_light_level(item)
+                  else if (item.device_id.startsWith('NFC_'))
+                    return this.render_nfc(item)
+                }
               }
-            }
-          />
-        </View>
-        :
-        <View style={styles.container}>
-          <View style={styles.framed}>
-            {/* <View style={[dashboard_styles.button, dashboard_styles.button_pressed]}> */}
-            <Text style={dashboard_styles.info}>Connecting to Kuzzle...</Text>
-            {/* </View> */}
+            />
           </View>
-        </View>
-    )
+        )
+      case KUZZLE_CONN_STATE.CONNECTING:
+        return (
+          <View style={styles.container}>
+            <View style={styles.framed}>
+              {/* <View style={[dashboard_styles.button, dashboard_styles.button_pressed]}> */}
+              <Text style={dashboard_styles.info}>Connecting to Kuzzle...</Text>
+              {/* </View> */}
+            </View>
+          </View>
+        )
+      case KUZZLE_CONN_STATE.DISCONNECTED:
+      case KUZZLE_CONN_STATE.ERROR:
+        return (
+          <View style={styles.container}>
+            <View style={styles.framed}>
+              {/* <View style={[dashboard_styles.button, dashboard_styles.button_pressed]}> */}
+              <Text style={dashboard_styles.info}>Disconnected from Kuzzle...</Text>
+              {/* </View> */}
+            </View>
+          </View>
+        )
+    }
   }
 
   subscribe_to_buttons(device_id) {

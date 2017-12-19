@@ -11,7 +11,6 @@ import { Header } from 'react-navigation'
 class Settings extends Component {
   constructor(props) {
     super(props)
-    console.log('store:', store);
     this.state = {
       hostname: store.getState().kuzzleSettings.hostname,
       port: store.getState().kuzzleSettings.port
@@ -27,10 +26,6 @@ class Settings extends Component {
       port: this.state.port,
     })
     this.props.navigation.goBack()
-  }
-
-  updateDeviceUID = () => {
-    console.log("TODO: updateDeviceUID");
   }
 
   static navigationOptions = (navigation) => {
