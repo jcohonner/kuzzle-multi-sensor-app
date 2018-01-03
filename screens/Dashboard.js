@@ -165,7 +165,8 @@ export default class Dashboard extends Component {
   rgb_light_set_color(color, device_id) {
     this.rgb_light_publish_state({
       mode: "single-color",
-      color
+      color,
+      on: true
     }, device_id)
   }
 
@@ -173,6 +174,7 @@ export default class Dashboard extends Component {
     var device_state = {
       partial_state: true,
       device_id,
+      device_type:'neopixel-linear',
       state
     }
     console.log('RGB light partial state : ', device_state)
@@ -424,8 +426,8 @@ export default class Dashboard extends Component {
         var state = res.document.content.state
         this.setState((prevState) => {
           var n = Object()
-          n[state.card_id] = state
-          return { rfid_tags: Object.assign(prevState.rfid_tags, n) }
+          state.key=state.card_id
+          return { rfid_tags: [state] }
         }, () => {
         })
       })
@@ -443,17 +445,13 @@ export default class Dashboard extends Component {
             equals: {
               device_id
             }
-          },
-          {
-            equals: {
-              partial_state: false
-            }
           }
         ]
       }, {
         subscribeToSelf: false
       }, (err, res) => {
         var state = res.document.content.state
+        console.log(state);
         this.setState({ rgb_light: state }, () => {
         })
       })
