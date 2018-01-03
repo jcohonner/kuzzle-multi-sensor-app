@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#bcd0e0' //'#617a8e'    
   },
   framed: {
-    borderWidth: 3,
+    borderWidth: .5,
     borderRadius: 10,
     borderColor: green,
     backgroundColor: '#0d242f',    
