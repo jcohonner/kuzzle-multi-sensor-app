@@ -11,9 +11,12 @@ import { Header } from 'react-navigation'
 class Settings extends Component {
   constructor(props) {
     super(props)
+
+    let kuzzleSettings = store.getState().kuzzleSettings;
+
     this.state = {
-      hostname: store.getState().kuzzleSettings.hostname,
-      port: store.getState().kuzzleSettings.port
+      hostname: (kuzzleSettings && kuzzleSettings.hostname)?kuzzleSettings.hostname:'localhost',
+      port: (kuzzleSettings && kuzzleSettings.port)?kuzzleSettings.port:'7512'
     }
   }
 
