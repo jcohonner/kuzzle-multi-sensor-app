@@ -280,7 +280,7 @@ export default class Dashboard extends Component {
         <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
         <Text
           style={dashboard_styles.light_level}>
-          {this.state.light_level ? this.state.light_level.level.toFixed(2).toString() + 'Lux' : ''}
+          {this.state.light_level &&  this.state.light_level.level ? this.state.light_level.level.toFixed(2).toString() + ' Lux' : ''}
         </Text>
       </View>
     )
