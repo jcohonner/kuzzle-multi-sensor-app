@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { styles, lightblue, orange, green } from '../styles/styles'
 import { store } from '../App'
 import Kuzzle from 'kuzzle-sdk/dist/kuzzle.js'
+import SLIcon from 'react-native-vector-icons/SimpleLineIcons';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 Kuzzle.prototype.bluebird = require('bluebird')
 
 
@@ -34,7 +36,7 @@ export default class Dashboard extends Component {
       kuzzle_conn: KUZZLE_CONN_STATE.DISCONNECTED,
       btn_state: {},
       my_devices: [],
-      rfid_tags: [],
+      rfid_tags: null,
       rgb_light: {},
       light_level: undefined
     }
@@ -126,19 +128,19 @@ export default class Dashboard extends Component {
               this.subscribe_to_buttons(d.device_id)
               break
             case 'RFID_reader':
-              this.addDevice('RFID Cards', d.device_id)
+              this.addDevice('RFID', d.device_id)
               this.subscribe_to_rfid(d.device_id)
               break
             case 'motion-sensor':
-              this.addDevice('Motion sensor', d.device_id)
+              this.addDevice('Motion', d.device_id)
               this.subscribe_to_motion_sensor(d.device_id)
               break
             case 'light_sensor':
-              this.addDevice('Light level', d.device_id)
+              this.addDevice('Luminosity', d.device_id)
               this.subscribe_to_light_level_sensor(d.device_id)
               break
             case 'neopixel-linear':
-              this.addDevice('LED Strip', d.device_id)
+              this.addDevice('Color ramp', d.device_id)
               this.subscribe_to_rgb_light(d.device_id)
               break
             default:
@@ -231,12 +233,11 @@ export default class Dashboard extends Component {
   render_motion(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-        <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-        <View style={this.get_motion_style()}><Text style={
-          {
-            fontSize: 20,
-            fontWeight: 'bold', paddingHorizontal: 20
-          }}>Motion</Text></View>
+        <SLIcon name="energy" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+        <View>
+          <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
+          <Text>{(this.state.motion_state && this.state.motion_state.motion && dashboard_styles.button_pressed)?'Yes':'No'}</Text>
+        </View>
       </View>
     )
   }
@@ -256,22 +257,14 @@ export default class Dashboard extends Component {
     return item.card_id
   }
 
-  render_nfc_item(item) {
-    return (
-      <View style={this.get_rfid_style(item.item)}><Text>{item.item.card_id}</Text></View>
-    )
-  }
-
   render_nfc(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-        <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-        <FlatList
-          data={Object.keys(this.state.rfid_tags).map((k) => { return this.state.rfid_tags[k] })}
-          extraData={this.state}
-          renderItem={(item) => { return this.render_nfc_item(item) }}
-          keyExtractor={this.nfc_key_extractor}
-        />
+        <SLIcon name="shield" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+        <View>
+          <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
+          <Text>{this.state.rfid_tags?this.state.rfid_tags:'none'}</Text>
+        </View>
       </View>
     )
   }
@@ -279,11 +272,14 @@ export default class Dashboard extends Component {
   render_light_level(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
+      <FAIcon name="sun-o" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+      <View>
         <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
         <Text
           style={dashboard_styles.light_level}>
-          {this.state.light_level &&  this.state.light_level.level ? parseInt(this.state.light_level.level) + ' Lux' : ''}
+          {this.state.light_level &&  this.state.light_level.level ? parseInt(this.state.light_level.level) + ' Lux' : 'NA'}
         </Text>
+      </View>
       </View>
     )
   }
@@ -313,9 +309,8 @@ export default class Dashboard extends Component {
     switch (this.state.kuzzle_conn) {
       case KUZZLE_CONN_STATE.CONNECTED:
         return (
-          <View style={styles.container}>
-            <FlatList
-              numColumns={2}
+          <View >
+            <FlatList 
               data={this.state.my_devices}
               extraData={this.state}
               renderItem={
@@ -424,12 +419,7 @@ export default class Dashboard extends Component {
         subscribeToSelf: false
       }, (err, res) => {
         var state = res.document.content.state
-        this.setState((prevState) => {
-          var n = Object()
-          state.key=state.card_id
-          return { rfid_tags: [state] }
-        }, () => {
-        })
+        this.setState({rfid_tags:state.card_id});
       })
       .onDone(() => {
         console.log('[DONE] Subscribing to RFID card events');
@@ -471,19 +461,15 @@ const dashboard_styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   device: {
-    padding: 10,
-    margin: 4,
-    width: 185,
-    alignSelf: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    flex:1,
+    flexDirection: 'row',
+    justifyContent: 'flex-start'
   },
   button: {
     padding: 5,
     justifyContent: 'center',
     margin: 4,
-    // width: 100,
+    width: 200,
     borderRadius: 5,
     borderWidth: 0,
     shadowColor: '#000',
@@ -511,5 +497,13 @@ const dashboard_styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     paddingHorizontal: 20
+  },
+  device_icon: {
+    width:50,
+    height:50,
+    paddingVertical:10,
+    backgroundColor: "#a4b7c1",
+    textAlign:'center',
+    marginRight:4
   }
 })

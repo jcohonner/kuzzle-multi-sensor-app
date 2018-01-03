@@ -18,7 +18,6 @@ export const styles = StyleSheet.create({
     // paddingTop: 50,
     paddingTop:20,
     flex: 1,
-    backgroundColor: darkbrown,
     alignItems: 'flex-start',
     flexDirection: 'column',
     justifyContent: 'flex-start',
@@ -55,13 +54,12 @@ export const styles = StyleSheet.create({
   },
   framed: {
     borderWidth: .5,
-    borderRadius: 10,
     borderColor: green,
-    backgroundColor: '#0d242f',    
+    backgroundColor: '#FFFFFF',    
     padding: 10,
     margin: 4,
     // height: 150,
-    alignSelf: 'center',
+    
     alignItems: 'center',
     flexDirection: 'column',
     justifyContent: 'space-between',   
@@ -81,7 +79,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ddd'
   },
   card_header: {
-    color: '#fff',
+    color: '#000000',
     fontFamily: 'Verdana',
     fontSize: 20,
     fontWeight: 'bold',
