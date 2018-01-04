@@ -17,7 +17,7 @@ class Settings extends Component {
 
     this.state = {
       hostname: (kuzzleSettings && kuzzleSettings.hostname)?kuzzleSettings.hostname:'localhost',
-      port: (kuzzleSettings && kuzzleSettings.port)?kuzzleSettings.port:'7512',
+      port: (kuzzleSettings && kuzzleSettings.port)?kuzzleSettings.port:7512,
       luminosityThreshold: deviceSettings.luminosityThreshold,
       rfidValidCard: deviceSettings.rfidValidCard
     }
@@ -61,14 +61,14 @@ class Settings extends Component {
             style={styles.input}
             value={this.state.port.toString()}
             keyboardType='numeric'
-            onChangeText={(text) => this.setState({ port: text })}
+            onChangeText={(text) => this.setState({ port: parseInt(text)?parseInt(text):7512 })}
           />
           <TextInput
             placeholder="Luminosity Threshold"
             style={styles.input}
             value={this.state.luminosityThreshold.toString()}
             keyboardType='numeric'
-            onChangeText={(text) => this.setState({ luminosityThreshold: text })}
+            onChangeText={(text) => this.setState({ luminosityThreshold: parseInt(text)?parseInt(text):80 })}
           />
           <TextInput
             placeholder="RFID Valid Card ID"

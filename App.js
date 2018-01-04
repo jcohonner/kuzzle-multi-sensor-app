@@ -112,25 +112,29 @@ export default class App extends React.Component {
     store.subscribe(async function () {
       console.log('store updated: ', store.getState().kuzzleSettings)
       kuzzleSettings = store.getState().kuzzleSettings
-      kuzzleSettings = store.getState().kuzzleSettings
+      deviceSettings = store.getState().deviceSettings
       var settings = []
 
       if (kuzzleSettings.hostname) {
-        console.log("Adding kuzzle-hostname to settings");
         settings.push(["kuzzle-hostname", kuzzleSettings.hostname])
       }
       if (kuzzleSettings.port) {
-        console.log("Adding kuzzle-port to settings");
-        settings.push(["kuzzle-port", kuzzleSettings.port])
+        settings.push(["kuzzle-port", kuzzleSettings.port.toString()])
       }
       if (kuzzleSettings.user) {
-        console.log("Adding kuzzle-user to settings");
         settings.push(["kuzzle-user", kuzzleSettings.user])
       }
       if (kuzzleSettings.password) {
-        console.log("Adding kuzzle-password to settings");
         settings.push(["kuzzle-password", kuzzleSettings.password])
       }
+      if (deviceSettings.luminosityThreshold) {
+        settings.push(["luminosityThreshold", deviceSettings.luminosityThreshold.toString()])
+      }
+      if (deviceSettings.rfidValidCard) {
+        settings.push(["rfidValidCard", deviceSettings.rfidValidCard])
+      }
+
+
       try {
         console.log(settings)
         await AsyncStorage.multiSet(

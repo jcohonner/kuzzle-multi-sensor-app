@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity, Alert } from 'react-native'
 import { TriangleColorPicker, fromHsv } from 'react-native-color-picker'
-import { Ionicons } from '@expo/vector-icons';
 import { styles, lightblue, orange, green } from '../styles/styles'
 import { store } from '../App'
 import Kuzzle from 'kuzzle-sdk/dist/kuzzle.js'
@@ -99,7 +98,7 @@ export default class Dashboard extends Component {
   static navigationOptions = ({ navigation }) => {
     let headerRight = (
       <TouchableOpacity style={{ padding: 10 }} onPress={() => { navigation.navigate('Settings') }}>
-        <Ionicons name="md-settings" size={28} color={'rgb(14,122,254)'} />
+        <SLIcon name="settings" size={28} color={'rgb(14,122,254)'} />
       </TouchableOpacity>
     )
     return { headerRight };
