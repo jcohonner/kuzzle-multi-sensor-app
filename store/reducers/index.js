@@ -1,9 +1,11 @@
 import {combineReducers} from 'redux'
-import kuzzleSettings from './settings'
+import kuzzleSettings from './kuzzleSettings'
+import deviceSettings from './deviceSettings'
 
 
 const reducers = combineReducers({
-  kuzzleSettings
+  kuzzleSettings,
+  deviceSettings
 })
 
 export default reducers

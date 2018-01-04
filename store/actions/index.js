@@ -15,3 +15,13 @@ export const setUserCredentials = (user, password) => {
     password
   }
 }
+
+export const setDeviceSettings = (luminosityThreshold, rfidValidCard) => {
+  return {
+    type: 'SET_DEVICE_SETTINGS',
+    
+    luminosityThreshold,
+    rfidValidCard
+  }
+}
+

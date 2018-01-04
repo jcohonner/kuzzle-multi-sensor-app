@@ -31,48 +31,76 @@ export default class App extends React.Component {
   }
 
   loadSettings = async () => {
-    var user, password, host, port
+    var user, password, host, port, luminosityThreshold, rfidValidCard
     try {
       user = await AsyncStorage.getItem("kuzzle-user")
+      if (!user) user = 'demo1'
     }
     catch (error) {
-      user = undefined
+      //
     }
 
     try {
       password = await AsyncStorage.getItem("kuzzle-password")
+      if (!password)  password = undefined
     }
     catch (error) {
-      password = undefined
+      //
     }
 
     try {
       hostname = await AsyncStorage.getItem("kuzzle-hostname")
+      if (!hostname) hostname = 'localhost';
     }
     catch (error) {
-      hostname = '192.168.1.108'
+      
     }
 
     try {
       port = await AsyncStorage.getItem("kuzzle-port")
+      if (!port) port = 7512
     }
     catch (error) {
-      console.log('No settings found...', error);
-      port = 7512
+      //
     }
+
+    try {
+      luminosityThreshold = await AsyncStorage.getItem("luminosityThreshold")
+      if (!luminosityThreshold) luminosityThreshold = 80
+    }
+    catch (error) {
+      //
+    }
+
+    try {
+      rfidValidCard = await AsyncStorage.getItem("rfidValidCard")
+      if (!rfidValidCard) rfidValidCard = '9549B990'
+    }
+    catch (error) {
+      //
+      
+    }
+
     kuzzleSettings = {
       hostname,
       port,
       user,
       port
     }
-    console.log('Got settings: ', kuzzleSettings);
+
+    deviceSettings = {
+      rfidValidCard,
+      luminosityThreshold
+    }
+
+    console.log('Got settings: ', kuzzleSettings, deviceSettings);
 
     console.log("Creating redux store...");
     store = createStore(
       reducers,
       {
-        kuzzleSettings
+        kuzzleSettings,
+        deviceSettings
       })
     this.subscribeStore()
     this.setState({ settingsLoaded: true })
@@ -83,6 +111,7 @@ export default class App extends React.Component {
 
     store.subscribe(async function () {
       console.log('store updated: ', store.getState().kuzzleSettings)
+      kuzzleSettings = store.getState().kuzzleSettings
       kuzzleSettings = store.getState().kuzzleSettings
       var settings = []
 

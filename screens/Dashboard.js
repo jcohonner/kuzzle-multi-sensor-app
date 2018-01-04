@@ -14,9 +14,7 @@ Kuzzle.prototype.bluebird = require('bluebird')
 const { width, height } = Dimensions.get('window')
 // orientation must fixed
 const SCREEN_WIDTH = width < height ? width : height;
-// const SCREEN_HEIGHT = width < height ? height : width;
-const isSmallDevice = SCREEN_WIDTH <= 414;
-const numColumns = isSmallDevice ? 2 : 3;
+
 // item size
 const PRODUCT_ITEM_HEIGHT = 255;
 const PRODUCT_ITEM_OFFSET = 5;
@@ -38,10 +36,12 @@ export default class Dashboard extends Component {
       my_devices: [],
       rfid_tags: null,
       rgb_light: {},
-      light_level: undefined
+      light_level: undefined,
+      light_threshold: 80
     }
     this.deviceKey = 0
     this.kuzzleSettings = store.getState().kuzzleSettings
+    this.deviceSettings = store.getState().deviceSettings
   }
 
   componentDidMount() {
@@ -85,6 +85,9 @@ export default class Dashboard extends Component {
       this.kuzzle_connect(k)
 
     }
+
+    this.deviceSettings = store.getState().deviceSettings
+  
   }
 
   componentWillUnmount() {
@@ -192,91 +195,97 @@ export default class Dashboard extends Component {
       })
   }
 
-  get_button_style(btn_num) {
-    return [
-      dashboard_styles.button,
-      dashboard_styles.button_released,
-      this.state.btn_state && this.state.btn_state['button_' + btn_num] === 'PRESSED' && dashboard_styles.button_pressed
-    ]
+
+
+  /*
+   * Buttons
+   */
+
+  getButtonPressed() {
+    if (this.state.btn_state && this.state.btn_state.button_0==='PRESSED') return 'Button 1'
+    if (this.state.btn_state && this.state.btn_state.button_1==='PRESSED') return 'Button 2'
+    if (this.state.btn_state && this.state.btn_state.button_2==='PRESSED') return 'Button 3'
+    if (this.state.btn_state && this.state.btn_state.button_3==='PRESSED') return 'Button 4'
+    return 'none';
   }
 
-  get_motion_style() {
+  getButtonIconStyle() {
     return [
-      dashboard_styles.button,
-      dashboard_styles.button_released,
-      this.state.motion_state && this.state.motion_state.motion && dashboard_styles.button_pressed,
-
+      (this.getButtonPressed()!='none') && dashboard_styles.deviceIconOn
     ]
   }
 
   render_buttons(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-        <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-        <View style={this.get_button_style(0)}>
-          <Text style={dashboard_styles.button_text}>Btn 0</Text>
-        </View>
-        <View style={this.get_button_style(1)}>
-          <Text style={dashboard_styles.button_text}>Btn 1</Text>
-        </View>
-        <View style={this.get_button_style(2)}>
-          <Text style={dashboard_styles.button_text}>Btn 2</Text>
-        </View>
-        <View style={this.get_button_style(3)}>
-          <Text style={dashboard_styles.button_text}>Btn 3</Text>
+        <SLIcon name="grid" size={30} color="#000000" style={[dashboard_styles.device_icon,this.getButtonIconStyle()]}/>
+        <View>
+          <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
+          <Text style={dashboard_styles.deviceValueText}>{this.getButtonPressed()}</Text>
         </View>
       </View>
-
     )
   }
+
+  /*
+   * Motion
+   */
 
   render_motion(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-        <SLIcon name="energy" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+        <SLIcon name="energy" size={30} color="#000000" style={[dashboard_styles.device_icon,(this.state.motion_state && this.state.motion_state.motion) && dashboard_styles.deviceIconOn]}/>
         <View>
           <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-          <Text>{(this.state.motion_state && this.state.motion_state.motion && dashboard_styles.button_pressed)?'Yes':'No'}</Text>
+          <Text style={dashboard_styles.deviceValueText}>{(this.state.motion_state && this.state.motion_state.motion)?'Yes':'No'}</Text>
         </View>
       </View>
     )
   }
 
-  get_rfid_style(item) {
-    return [
-      dashboard_styles.button,
-      dashboard_styles.button_released,
-      item.in_field && dashboard_styles.button_pressed
-    ]
-  }
-  // RFID document fields:
-  // card_id:"9549B990"
-  // in_field:true
 
-  nfc_key_extractor(item, index) {
-    return item.card_id
+  /*
+   * NFC/RFID
+   */
+
+  getNFCIconStyle() {
+    if (this.state.rfid_tags) {
+      switch (this.state.rfid_tags) {
+        case this.deviceSettings.rfidValidCard:
+          return dashboard_styles.deviceIconOn;
+        break;
+        default:
+          return dashboard_styles.deviceIconRed;
+      }
+    }
+    return dashboard_styles.deviceIconOff;
   }
+
 
   render_nfc(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-        <SLIcon name="shield" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+        <SLIcon name="shield" size={30} color="#000000" style={[dashboard_styles.device_icon,this.getNFCIconStyle()]}/>
         <View>
           <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-          <Text>{this.state.rfid_tags?this.state.rfid_tags:'none'}</Text>
+          <Text style={dashboard_styles.deviceValueText}>{this.state.rfid_tags?this.state.rfid_tags:'none'}</Text>
         </View>
       </View>
     )
   }
 
+
+  /*
+   * Light Level
+   */
+
   render_light_level(item) {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
-      <FAIcon name="sun-o" size={30} color="#000000" style={dashboard_styles.device_icon}/>
+      <FAIcon name="sun-o" size={30} color="#000000" style={[dashboard_styles.device_icon, this.state.light_level && this.state.light_level.level > parseInt(this.deviceSettings.luminosityThreshold) && dashboard_styles.deviceIconYellow]}/>
       <View>
         <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-        <Text
-          style={dashboard_styles.light_level}>
+        <Text style={dashboard_styles.deviceValueText}>
           {this.state.light_level &&  this.state.light_level.level ? parseInt(this.state.light_level.level) + ' Lux' : 'NA'}
         </Text>
       </View>
@@ -284,26 +293,40 @@ export default class Dashboard extends Component {
     )
   }
 
+
+  /*
+   * NEOPIXEL
+   */
+
+  neoPixelLightSwitch(device_id) {
+
+    this.rgb_light_publish_state({
+      on: !this.state.rgb_light.on
+    }, device_id)
+
+  }
+
+
   render_rgb_light(item) {
     var rgb_light = this.state.rgb_light
     return (
-      <View style={
-        [
-          styles.framed, dashboard_styles.device,
-          // { height: 300 }
-        ]}>
-        <View style={{ flex: 1, flexDirection: 'column' }}>
-          <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-            <Switch value={this.state.rgb_light.on}
-              onValueChange={(value) => this.rgb_light_switch(value, item.device_id)} />
-          </View>
-          <TriangleColorPicker style={{ flex: 1, width: 150 }}
+      <View style={[styles.framed, dashboard_styles.device]}>
+      <TouchableOpacity onPress={() => {this.neoPixelLightSwitch(item.device_id)}}>
+        <SLIcon name="bulb" size={30} color="#000000" style={[dashboard_styles.device_icon,this.state.rgb_light.on && dashboard_styles.deviceIconYellow]}/>
+      </TouchableOpacity>
+      <View>
+        <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
+        <TriangleColorPicker style={{ flex: 1, width: 150,height: 150 }}
             onColorChange={color => this.rgb_light_set_color(fromHsv(color), item.device_id)} />
-        </View>
       </View>
+    </View>
     )
   }
+
+
+  /*
+   * Global render
+   */  
 
   render() {
     switch (this.state.kuzzle_conn) {
@@ -438,10 +461,11 @@ export default class Dashboard extends Component {
           }
         ]
       }, {
-        subscribeToSelf: false
+        subscribeToSelf: true
       }, (err, res) => {
         var state = res.document.content.state
-        console.log(state);
+        //if on value is not set, then keep the previous information
+        if (state.on == null) state.on = (this.state.rgb_light)?this.state.rgb_light.on:false;
         this.setState({ rgb_light: state }, () => {
         })
       })
@@ -505,5 +529,21 @@ const dashboard_styles = StyleSheet.create({
     backgroundColor: "#a4b7c1",
     textAlign:'center',
     marginRight:4
+  },
+  deviceIconOn: {
+    backgroundColor: 'green'
+  },
+  deviceIconOff: {
+
+  },
+  deviceIconRed: {
+    backgroundColor: 'red'
+  },
+  deviceIconYellow: {
+    backgroundColor: 'yellow'
+  },
+  deviceValueText: {
+    fontSize:20
   }
+
 })
