@@ -437,7 +437,7 @@ export default class Dashboard extends Component {
       }, (err, res) => {
         var state = res.document.content.state
         this.setState({rfid_tags:state.card_id});
-        if (state.card_id && state.in_field) PushNotificationIOS.scheduleLocalNotification({fireDate:new Date().toISOString(),alertBody:"User with card "+state.card_id+" tried to enter",alertTitle:"Front door"});
+        if (state.card_id && state.in_field) PushNotificationIOS.scheduleLocalNotification({fireDate:new Date().toISOString(),alertBody:"Someone with card "+state.card_id+" tried to enter",alertTitle:"Front door"});
       })
       .onDone(() => {
         console.log('[DONE] Subscribing to RFID card events');

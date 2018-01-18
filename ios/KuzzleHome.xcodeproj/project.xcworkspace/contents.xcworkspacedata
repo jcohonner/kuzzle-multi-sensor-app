@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:">
+      location = "self:/Users/jerome/Sources/kuzzle-multi-sensor-app/ios/KuzzleHome.xcodeproj">
    </FileRef>
 </Workspace>
