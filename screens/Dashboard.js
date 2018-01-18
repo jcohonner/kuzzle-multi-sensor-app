@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, FlatList, Dimensions, StyleSheet, Switch, Vibration, Button, TouchableOpacity, Alert, PushNotificationIOS } from 'react-native'
 import { TriangleColorPicker, fromHsv } from 'react-native-color-picker'
 import { styles, lightblue, orange, green } from '../styles/styles'
 import { store } from '../App'
@@ -55,11 +55,6 @@ export default class Dashboard extends Component {
       if (err) {
         console.log('Kuzzle connection error:', err.toString())
         this.setState({kuzzle_conn: KUZZLE_CONN_STATE.ERROR})
-        Alert.alert('Kuzzle connection error', err.toString(), [
-          {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-          {text: 'Retry', onPress: () => console.log('Retry Pressed')},
-        ],
-        { cancelable: false })
       } else {
         console.log('Connected to Kuzzle')
         this.setState({ kuzzle_conn: KUZZLE_CONN_STATE.CONNECTED })
@@ -442,6 +437,7 @@ export default class Dashboard extends Component {
       }, (err, res) => {
         var state = res.document.content.state
         this.setState({rfid_tags:state.card_id});
+        if (state.card_id && state.in_field) PushNotificationIOS.scheduleLocalNotification({fireDate:new Date().toISOString(),alertBody:"User with card "+state.card_id+" tried to enter",alertTitle:"Front door"});
       })
       .onDone(() => {
         console.log('[DONE] Subscribing to RFID card events');
